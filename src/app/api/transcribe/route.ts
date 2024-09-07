@@ -21,6 +21,7 @@ export async function POST(inRequest: Request) {
   };
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [response] = await client.recognize(request as any);
     const transcription = response.results
       ?.map(result => result.alternatives?.[0].transcript)

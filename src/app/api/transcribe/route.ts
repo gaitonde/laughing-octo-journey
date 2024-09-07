@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
 import { SpeechClient } from '@google-cloud/speech';
+import { GoogleAuth } from 'google-auth-library';
+import { NextResponse } from 'next/server';
 
 export async function POST(inRequest: Request) {
   const { audio } = await inRequest.json();
@@ -7,7 +8,15 @@ export async function POST(inRequest: Request) {
   // Remove the data URL prefix
   const base64Audio = audio.split(',')[1];
 
-  const client = new SpeechClient();
+  const client = new SpeechClient({
+    auth: new GoogleAuth({
+      projectId: 'cursor-1-434621',
+      credentials: {
+        client_email: 'cloud-speech-admin@cursor-1-434621.iam.gserviceaccount.com',
+        private_key: process.env.GOOGLE_APPLICATION_CREDENTIALS_PRIVATE_KEY
+      }
+    })
+  });
 
   const config = {
     encoding: 'WEBM_OPUS',

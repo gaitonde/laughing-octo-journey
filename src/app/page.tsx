@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
@@ -8,6 +8,68 @@ export default function Home() {
   const [transcript, setTranscript] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  interface ScoringResult {
+    contentAndStructure: {
+      thesisClarity: number;
+      organization: number;
+      supportEvidence: number;
+      total: number;
+    };
+    deliveryAndVocalControl: {
+      pacingPausing: number;
+      volumeClarity: number;
+      vocalVariety: number;
+      total: number;
+    };
+    languageUseAndStyle: {
+      grammarSyntax: number;
+      appropriateness: number;
+      wordChoiceRhetoric: number;
+      total: number;
+    };
+    finalScore: number;
+  }
+
+  const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
+
+  const getRandomScore = () => Math.floor(Math.random() * 5) + 1;
+
+  const [formData, setFormData] = useState({
+    thesisClarity: getRandomScore(),
+    organization: getRandomScore(),
+    supportEvidence: getRandomScore(),
+    pacingPausing: getRandomScore(),
+    volumeClarity: getRandomScore(),
+    vocalVariety: getRandomScore(),
+    grammarSyntax: getRandomScore(),
+    appropriateness: getRandomScore(),
+    wordChoiceRhetoric: getRandomScore(),
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: parseInt(value) }));
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) {
+        throw new Error('Scoring failed');
+      }
+      const result = await response.json();
+      setScoringResult(result);
+    } catch (error) {
+      console.error('Scoring error:', error);
+      setScoringResult(null);
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -106,6 +168,44 @@ export default function Home() {
           )}
         </>
       )}
+
+      <div className="flex flex-col md:flex-row mt-8 gap-8">
+        <div className="w-full md:w-1/2">
+          <h2 className="text-xl font-bold mb-4">Speech Scoring Form</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {Object.entries(formData).map(([key, value]) => (
+              <div key={key} className="flex items-center">
+                <label htmlFor={key} className="w-48">{key}:</label>
+                <input
+                  type="number"
+                  id={key}
+                  name={key}
+                  value={value}
+                  onChange={handleInputChange}
+                  min="1"
+                  max="5"
+                  required
+                  className="border rounded px-2 py-1 text-black w-16"
+                />
+              </div>
+            ))}
+            <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
+              Submit for Scoring
+            </button>
+          </form>
+        </div>
+
+        <div className="w-full md:w-1/2">
+          <h2 className="text-xl font-bold mb-4">Scoring Result</h2>
+          {scoringResult ? (
+            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-black h-full">
+              {JSON.stringify(scoringResult, null, 2)}
+            </pre>
+          ) : (
+            <p className="text-gray-500">Submit the form to see results here.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

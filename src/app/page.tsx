@@ -110,7 +110,7 @@ export default function Home() {
       mediaRecorder.stop();
       stream.getTracks().forEach(track => track.stop());
       setIsRecording(false);
-    }, 3000);
+    }, 10000);
   };
 
   const getTranscription = async (audioBlob: Blob): Promise<string> => {
@@ -140,69 +140,76 @@ export default function Home() {
     });
   };
 
+  const [aiScoringResult, setAiScoringResult] = useState<ScoringResult | null>(null);
+
+  const handleAiScoring = async () => {
+    if (!transcript) {
+      alert('Please record audio and generate a transcript first.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/ai-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcription: transcript }),
+      });
+      if (!response.ok) {
+        throw new Error('AI Scoring failed');
+      }
+      const result = await response.json();
+      setAiScoringResult(result);
+    } catch (error) {
+      console.error('AI Scoring error:', error);
+      setAiScoringResult(null);
+    }
+  };
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">3-Second Audio Recorder with Transcription</h1>
-      <button
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-        onClick={startRecording}
-        disabled={isRecording}
-      >
-        {isRecording ? 'Recording...' : 'Record'}
-      </button>
-      {audioUrl && (
-        <>
-          <audio className="mt-4 block" controls src={audioUrl} />
-          <a
-            className="mt-2 inline-block text-blue-500"
-            href={audioUrl}
-            download="recording.webm"
+    <div className="h-screen p-4 flex flex-col">
+      <h1 className="text-2xl font-bold mb-4">10-Second Audio Recorder with Transcription</h1>
+      <div className="flex flex-grow overflow-hidden">
+        <div className="w-1/2 pr-4 overflow-y-auto">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+            onClick={startRecording}
+            disabled={isRecording}
           >
-            Download Recording
-          </a>
+            {isRecording ? 'Recording...' : 'Record'}
+          </button>
+          {audioUrl && (
+            <>
+              <audio className="mt-4 block" controls src={audioUrl} />
+              <a
+                className="mt-2 inline-block text-blue-500"
+                href={audioUrl}
+                download="recording.webm"
+              >
+                Download Recording
+              </a>
+            </>
+          )}
+        </div>
+        <div className="w-1/2 pl-4 overflow-y-auto">
           {transcript && (
             <div className="mt-4">
               <h2 className="text-xl font-semibold">Transcript:</h2>
               <p>{transcript}</p>
+              <button
+                className="mt-2 bg-green-500 text-white px-4 py-2 rounded"
+                onClick={handleAiScoring}
+              >
+                Score with AI
+              </button>
             </div>
           )}
-        </>
-      )}
-
-      <div className="flex flex-col md:flex-row mt-8 gap-8">
-        <div className="w-full md:w-1/2">
-          <h2 className="text-xl font-bold mb-4">Speech Scoring Form</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {Object.entries(formData).map(([key, value]) => (
-              <div key={key} className="flex items-center">
-                <label htmlFor={key} className="w-48">{key}:</label>
-                <input
-                  type="number"
-                  id={key}
-                  name={key}
-                  value={value}
-                  onChange={handleInputChange}
-                  min="1"
-                  max="5"
-                  required
-                  className="border rounded px-2 py-1 text-black w-16"
-                />
-              </div>
-            ))}
-            <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
-              Submit for Scoring
-            </button>
-          </form>
-        </div>
-
-        <div className="w-full md:w-1/2">
-          <h2 className="text-xl font-bold mb-4">Scoring Result</h2>
-          {scoringResult ? (
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-black h-full">
-              {JSON.stringify(scoringResult, null, 2)}
-            </pre>
-          ) : (
-            <p className="text-gray-500">Submit the form to see results here.</p>
+          {aiScoringResult && (
+            <div className="mt-4">
+              <h2 className="text-xl font-bold mb-2">AI Scoring Result</h2>
+              <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-black">
+                {JSON.stringify(aiScoringResult, null, 2)}
+              </pre>
+            </div>
           )}
         </div>
       </div>

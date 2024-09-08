@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
@@ -30,46 +30,6 @@ export default function Home() {
     };
     finalScore: number;
   }
-
-  const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
-
-  const getRandomScore = () => Math.floor(Math.random() * 5) + 1;
-
-  const [formData, setFormData] = useState({
-    thesisClarity: getRandomScore(),
-    organization: getRandomScore(),
-    supportEvidence: getRandomScore(),
-    pacingPausing: getRandomScore(),
-    volumeClarity: getRandomScore(),
-    vocalVariety: getRandomScore(),
-    grammarSyntax: getRandomScore(),
-    appropriateness: getRandomScore(),
-    wordChoiceRhetoric: getRandomScore(),
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: parseInt(value) }));
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('/api/score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) {
-        throw new Error('Scoring failed');
-      }
-      const result = await response.json();
-      setScoringResult(result);
-    } catch (error) {
-      console.error('Scoring error:', error);
-      setScoringResult(null);
-    }
-  };
 
   useEffect(() => {
     return () => {

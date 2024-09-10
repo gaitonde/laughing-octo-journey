@@ -18,11 +18,26 @@ interface EvaluationRatingProps {
   averageScore: number;
   definedRound: string;
   categories: Category[];
+  transcript: string | null; // Add transcript prop
+  audioUrl: string | null; // Keep audioUrl prop
+  recordingTimestamp: Date | null; // Add this line
 }
 
-export default function Scoring({ averageScore, definedRound, categories }: EvaluationRatingProps) {
+export default function Scoring({ averageScore, definedRound, categories, transcript, audioUrl, recordingTimestamp }: EvaluationRatingProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const overallAverageScore = categories.reduce((sum, category) => sum + category.score, 0) / categories.length;
+
+  // Format the timestamp
+  const formattedTimestamp = recordingTimestamp
+    ? recordingTimestamp.toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      })
+    : 'Date not available';
 
   //to satisfy the type checker
   console.debug('averageScore', averageScore);
@@ -42,7 +57,7 @@ export default function Scoring({ averageScore, definedRound, categories }: Eval
           <div className="ml-4">
             <h2 className="text-3xl font-bold text-gray-800 mb-1">Version #1</h2>
             <div className="flex flex-col">
-              <span className="text-gray-600 text-sm mb-1">September 9, 2024 10:52am</span>
+              <span className="text-gray-600 text-sm mb-1">{formattedTimestamp}</span>
             </div>
           </div>
         </div>
@@ -53,6 +68,15 @@ export default function Scoring({ averageScore, definedRound, categories }: Eval
 
       {isExpanded && (
         <>
+          <Separator className="my-8 h-px bg-gray-200" />
+          {transcript && audioUrl &&(
+            <div className="bg-white rounded-lg shadow">
+              <h2 className="text-xl font-semibold">Transcript</h2>
+              <p>{transcript}</p>
+              <audio className="mt-4 block w-full" controls src={audioUrl} />
+            </div>
+          )}
+
           <Separator className="my-8 h-px bg-gray-200" />
 
           {categories.map((category, index) => (
@@ -78,10 +102,25 @@ export default function Scoring({ averageScore, definedRound, categories }: Eval
             </div>
           ))}
 
+          {transcript && (
+            <div className="mb-8">
+              <h3 className="font-bold text-xl text-gray-800 mb-2">Transcript</h3>
+              <p className="text-gray-600">{transcript}</p>
+            </div>
+          )}
+
+          {audioUrl && (
+            <div className="mb-8">
+              <h3 className="font-bold text-xl text-gray-800 mb-2">Audio Recording</h3>
+              <audio className="w-full" controls src={audioUrl} />
+            </div>
+          )}
+
           <div className="flex items-center justify-between bg-orange-100 p-4 rounded-lg">
             <span className="font-bold text-lg text-gray-800">Total Score</span>
             <div className="flex items-center">
               <span className="font-bold text-2xl text-gray-800 mr-3">{overallAverageScore.toFixed(1)} / 30</span>
+{/*
               <div className="w-40 bg-gray-200 h-5 rounded-full overflow-hidden">
                 <div className="flex-grow bg-gray-200 h-5 rounded-full overflow-hidden">
                   <div
@@ -90,6 +129,7 @@ export default function Scoring({ averageScore, definedRound, categories }: Eval
                   ></div>
                 </div>
               </div>
+               */}
             </div>
           </div>
         </>

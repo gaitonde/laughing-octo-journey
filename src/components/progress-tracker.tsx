@@ -28,14 +28,16 @@ export default function ProgressTracker() {
   const [transcript, setTranscript] = useState<string | null>(null);
   const [aiScoringResult, setAiScoringResult] = useState<ScoringResult | null>(null);
   const [showDebug, setShowDebug] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   useEffect(() => {
     setShowDebug(true);
     setShowDebug(false);
   }, [showDebug]);
 
-  const handleTranscriptionComplete = async (newTranscript: string) => {
+  const handleTranscriptionComplete = async (newTranscript: string, newAudioUrl: string) => {
     setTranscript(newTranscript);
+    setAudioUrl(newAudioUrl);
     await handleAiScoring(newTranscript);
   };
 
@@ -94,25 +96,23 @@ export default function ProgressTracker() {
         ],
       },
     ],
+    transcript: transcript,
+    audioUrl: audioUrl,
+    recordingTimestamp: new Date(),
   } : null;
 
   return (
-    <div className="min-h-screen bg-purple-50 p-6">
+    <div className="min-h-screen bg-blue-50 p-6">
       <div className="max-w-2xl mx-auto space-y-4">
-        <h1 className="text-2xl font-bold text-gray-800">Public Speaking App</h1>
+        <h1 className="text-4xl font-bold text-gray-800">Vocalize</h1>
         <p className="text-sm text-gray-600 mb-4">
-          Public speaking without the pressure of an audience.
+        Pitch Perfect. Confidence Amplified. Speak Up. Stand Out.
         </p>
         <div className="p-4 bg-white rounded-lg shadow">
           <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
         </div>
-        {transcript && (
-          <div className="p-4 bg-white rounded-lg shadow">
-            <h2 className="text-xl font-semibold">Transcript</h2>
-            <p>{transcript}</p>
-          </div>
-        )}
-        {showDebug &&aiScoringResult && (
+
+        {showDebug && aiScoringResult && (
           <div className="p-4 bg-white rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-2">Raw AI Scoring Result:</h2>
             <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm">

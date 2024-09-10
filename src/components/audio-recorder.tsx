@@ -5,10 +5,11 @@ interface AudioRecorderProps {
 
 type RecorderState = 'Ready' | 'Recording' | 'Transcribing';
 
+const FIXED_TIME_LIMIT = 10;
+
 export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorderProps) {
   const [recorderState, setRecorderState] = useState<RecorderState>('Ready');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [timeLimit, setTimeLimit] = useState(5);
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -21,13 +22,13 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
     if (recorderState === 'Recording') {
       stopTimeout = setTimeout(() => {
         stopRecording();
-      }, timeLimit * 1000);
+      }, FIXED_TIME_LIMIT * 1000);
 
       intervalId = setInterval(() => {
         setRecordingTime((prevTime) => {
-          if (prevTime >= timeLimit) {
+          if (prevTime >= FIXED_TIME_LIMIT) {
             clearInterval(intervalId);
-            return timeLimit;
+            return FIXED_TIME_LIMIT;
           }
           return prevTime + 1;
         });
@@ -41,7 +42,7 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
         URL.revokeObjectURL(audioUrl);
       }
     };
-  }, [recorderState, timeLimit, audioUrl]);
+  }, [recorderState, FIXED_TIME_LIMIT, audioUrl]);
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -132,24 +133,10 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
         >
           {recorderState === 'Ready' ? 'Record' : recorderState === 'Recording' ? 'Stop' : 'Transcribing...'}
         </button>
-        <div className="flex items-center space-x-2">
-          <label htmlFor="timeLimit" className="text-sm font-medium text-gray-700">
-            Time Limit (seconds):
-          </label>
-          <input
-            type="number"
-            id="timeLimit"
-            value={timeLimit}
-            onChange={(e) => setTimeLimit(Math.max(1, parseInt(e.target.value)))}
-            className="w-16 px-2 py-1 border rounded-md"
-            min="1"
-            disabled={recorderState !== 'Ready'}
-          />
-        </div>
       </div>
       {recorderState === 'Recording' && (
         <div className="text-sm text-gray-600">
-          Recording: {recordingTime}s / {timeLimit}s
+          Recording: {recordingTime}s / {FIXED_TIME_LIMIT}s
         </div>
       )}
     </div>

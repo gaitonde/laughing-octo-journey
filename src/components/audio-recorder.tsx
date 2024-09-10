@@ -190,14 +190,16 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
       )}
       {transcript && (
         <div className="mt-4">
-          <h2 className="text-xl font-semibold">Transcript:</h2>
-          <p>{transcript}</p>
+          {/* <h2 className="text-xl font-semibold">Transcript:</h2> */}
+          {/* <p>{transcript}</p> */}
+{/*
           <button
             className="mt-2 bg-green-500 text-white px-4 py-2 rounded"
             onClick={handleAiScoring}
           >
             Score with AI
           </button>
+           */}
         </div>
       )}
       {scoringData && <Scoring {...scoringData} />}

@@ -1,5 +1,5 @@
 import AudioRecorder from "@/components/audio-recorder";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Scoring from "./scoring";
 
 interface ScoringResult {
@@ -28,8 +28,11 @@ export default function ProgressTracker() {
   const [transcript, setTranscript] = useState<string | null>(null);
   const [aiScoringResult, setAiScoringResult] = useState<ScoringResult | null>(null);
   const [showDebug, setShowDebug] = useState(false);
-  setShowDebug(true);
-  setShowDebug(false);
+
+  useEffect(() => {
+    setShowDebug(true);
+    setShowDebug(false);
+  }, [showDebug]);
 
   const handleTranscriptionComplete = async (newTranscript: string) => {
     setTranscript(newTranscript);

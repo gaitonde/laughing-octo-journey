@@ -21,10 +21,15 @@ interface EvaluationRatingProps {
   transcript: string | null; // Add transcript prop
   audioUrl: string | null; // Keep audioUrl prop
   recordingTimestamp: Date | null; // Add this line
+  versionNumber: number; // Add this line
+  isExpanded: boolean; // Add this line
+  onToggle: () => void; // Add this line
 }
 
-export default function Scoring({ averageScore, definedRound, categories, transcript, audioUrl, recordingTimestamp }: EvaluationRatingProps) {
-  const [isExpanded, setIsExpanded] = useState(true)
+export default function Scoring({ averageScore, definedRound, categories, transcript, audioUrl, recordingTimestamp, versionNumber, isExpanded, onToggle }: EvaluationRatingProps) {
+  // Remove the local state for isExpanded
+  // const [isExpanded, setIsExpanded] = useState(initialIsExpanded)
+
   const overallAverageScore = categories.reduce((sum, category) => sum + category.score, 0) / categories.length;
 
   // Format the timestamp
@@ -47,7 +52,7 @@ export default function Scoring({ averageScore, definedRound, categories, transc
     <div className="bg-white p-8 rounded-lg shadow-lg max-w-5xl mx-auto font-sans">
       <div
         className="flex items-start justify-between mb-6 cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={onToggle} // Change this line
       >
         <div className="flex items-center">
           <CircularProgress
@@ -55,7 +60,7 @@ export default function Scoring({ averageScore, definedRound, categories, transc
             size={88}
           />
           <div className="ml-4">
-            <h2 className="text-3xl font-bold text-gray-800 mb-1">Version #1</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-1">Version #{versionNumber}</h2>
             <div className="flex flex-col">
               <span className="text-gray-600 text-sm mb-1">{formattedTimestamp}</span>
             </div>

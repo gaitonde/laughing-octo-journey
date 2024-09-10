@@ -4,7 +4,7 @@ import ProgressTracker from "@/components/progress-tracker";
 import { useState } from 'react';
 
 export default function Home() {
-  const [transcript, setTranscript] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<string | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [aiScoringResult, setAiScoringResult] = useState<ScoringResult | null>(null);
 
   interface ScoringResult {
@@ -29,9 +29,6 @@ export default function Home() {
     finalScore: number;
   }
 
-  const handleTranscriptionComplete = (newTranscript: string) => {
-    setTranscript(newTranscript);
-  };
 
   const handleAiScoring = async () => {
     if (!transcript) {

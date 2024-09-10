@@ -49,7 +49,10 @@ export async function POST(req: NextRequest) {
     }
 
     const prompt = `
-      Act as an expert public English speaking coach. Evaluate the following transcript and provide a score on a scale of 1-5 for each of these categories:
+      Act as an expert public English speaking coach. Evaluate the
+      following transcript and provide a score on a scale of 1-10 for
+      each of the following categories. 1 being the lowest and 10
+      being the highest. Do not return a value of 0 for any category.
 
       1. Thesis Clarity
       2. Organization
@@ -61,7 +64,9 @@ export async function POST(req: NextRequest) {
       8. Appropriateness
       9. Word Choice/Rhetoric
 
-      Provide only the numerical scores for each category, separated by commas, in the order listed above. Do not include any other text in your response.
+      Provide only the numerical scores for each category, separated
+      by commas, in the order listed above. Do not include any other
+      text in your response.
 
       Transcript:
       ${transcription}
@@ -92,23 +97,23 @@ export async function POST(req: NextRequest) {
 
     // Calculate scores
     const contentAndStructure = {
-      thesisClarity: rubricScores.thesisClarity * 4,
-      organization: rubricScores.organization * 3,
+      thesisClarity: rubricScores.thesisClarity,
+      organization: rubricScores.organization,
       supportEvidence: rubricScores.supportEvidence,
       total: 0
     };
     contentAndStructure.total = contentAndStructure.thesisClarity + contentAndStructure.organization + contentAndStructure.supportEvidence;
 
     const deliveryAndVocalControl = {
-      pacingPausing: rubricScores.pacingPausing * 4,
-      volumeClarity: rubricScores.volumeClarity * 3,
+      pacingPausing: rubricScores.pacingPausing,
+      volumeClarity: rubricScores.volumeClarity,
       vocalVariety: rubricScores.vocalVariety,
       total: 0
     };
     deliveryAndVocalControl.total = deliveryAndVocalControl.pacingPausing + deliveryAndVocalControl.volumeClarity + deliveryAndVocalControl.vocalVariety;
 
     const languageUseAndStyle = {
-      grammarSyntax: rubricScores.grammarSyntax * 2,
+      grammarSyntax: rubricScores.grammarSyntax,
       appropriateness: rubricScores.appropriateness,
       wordChoiceRhetoric: rubricScores.wordChoiceRhetoric,
       total: 0
@@ -116,9 +121,9 @@ export async function POST(req: NextRequest) {
     languageUseAndStyle.total = languageUseAndStyle.grammarSyntax + languageUseAndStyle.appropriateness + languageUseAndStyle.wordChoiceRhetoric;
 
     const finalScore = (
-      (contentAndStructure.total / 40) * 0.4 +
-      (deliveryAndVocalControl.total / 40) * 0.4 +
-      (languageUseAndStyle.total / 20) * 0.2
+      (contentAndStructure.total / 30) * 0.4 +
+      (deliveryAndVocalControl.total / 30) * 0.4 +
+      (languageUseAndStyle.total / 30) * 0.2
     ) * 100;
 
     const result: ScoringResult = {

@@ -1,3 +1,4 @@
+import React, { useCallback } from 'react';
 import { useEffect, useRef, useState } from 'react';
 interface AudioRecorderProps {
   onTranscriptionComplete: (transcript: string, audioUrl: string) => void;
@@ -13,35 +14,6 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-
-  useEffect(() => {
-    let stopTimeout: NodeJS.Timeout;
-    let intervalId: NodeJS.Timeout;
-
-    if (recorderState === 'Recording') {
-      stopTimeout = setTimeout(() => {
-        stopRecording();
-      }, FIXED_TIME_LIMIT * 1000);
-
-      intervalId = setInterval(() => {
-        setRecordingTime((prevTime) => {
-          if (prevTime >= FIXED_TIME_LIMIT) {
-            clearInterval(intervalId);
-            return FIXED_TIME_LIMIT;
-          }
-          return prevTime + 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      clearTimeout(stopTimeout);
-      clearInterval(intervalId);
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
-      }
-    };
-  }, [recorderState, FIXED_TIME_LIMIT, audioUrl]);
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -77,13 +49,13 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
     setRecordingTime(0);
   };
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && recorderState === 'Recording') {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       setRecorderState('Transcribing');
     }
-  };
+  }, [recorderState]);
 
   const handleRecordClick = () => {
     if (recorderState === 'Ready') {
@@ -118,6 +90,35 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
       reader.readAsDataURL(blob);
     });
   };
+
+  useEffect(() => {
+    let stopTimeout: NodeJS.Timeout;
+    let intervalId: NodeJS.Timeout;
+
+    if (recorderState === 'Recording') {
+      stopTimeout = setTimeout(() => {
+        stopRecording();
+      }, FIXED_TIME_LIMIT * 1000);
+
+      intervalId = setInterval(() => {
+        setRecordingTime((prevTime) => {
+          if (prevTime >= FIXED_TIME_LIMIT) {
+            clearInterval(intervalId);
+            return FIXED_TIME_LIMIT;
+          }
+          return prevTime + 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      clearTimeout(stopTimeout);
+      clearInterval(intervalId);
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [recorderState, audioUrl, stopRecording]);
 
   return (
     <div className="space-y-4">

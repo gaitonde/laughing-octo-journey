@@ -5,11 +5,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-interface Category {
-  name: string;
-  score: number;
-}
-
 interface Suggestion {
   category: string;
   text: string;

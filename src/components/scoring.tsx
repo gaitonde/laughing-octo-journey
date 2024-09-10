@@ -38,6 +38,28 @@ export default function Scoring({ averageScore, definedRound, categories, transc
   const suggestionRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
 
   useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const response = await fetch('/api/generate-suggestions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ categories }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch suggestions');
+        }
+
+        const data = await response.json();
+        setSuggestions(data.suggestions);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        // Handle error (e.g., show an error message to the user)
+      }
+    };
+
     if (isExpanded) {
       fetchSuggestions();
     }
@@ -48,28 +70,6 @@ export default function Scoring({ averageScore, definedRound, categories, transc
       suggestionRefs.current[category.name] = React.createRef<HTMLDivElement>();
     });
   }, [isExpanded, audioUrl, categories]);
-
-  const fetchSuggestions = async () => {
-    try {
-      const response = await fetch('/api/generate-suggestions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ categories }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
-      }
-
-      const data = await response.json();
-      setSuggestions(data.suggestions);
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-      // Handle error (e.g., show an error message to the user)
-    }
-  };
 
   const overallAverageScore = categories.reduce((sum, category) => sum + category.score, 0) / categories.length;
 
@@ -165,7 +165,7 @@ export default function Scoring({ averageScore, definedRound, categories, transc
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Transcript</h2>
               <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-600">
-                "{transcript}"
+                &quot;{transcript}&quot;
               </blockquote>
               {audioUrl && (
                 <audio

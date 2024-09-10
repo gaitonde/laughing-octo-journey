@@ -83,6 +83,7 @@ export default function ProgressTracker() {
   // Use useEffect to collapse all versions except the most recent when a new recording is added
   useEffect(() => {
     if (versions.length > 0) {
+      setShowDebug(false);
       setExpandedVersionIndex(0);
     }
   }, [versions.length]);

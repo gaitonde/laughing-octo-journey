@@ -13,7 +13,6 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let stopTimeout: NodeJS.Timeout;
@@ -56,6 +55,7 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
       setRecorderState('Transcribing');
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm; codecs=opus' });
       const url = URL.createObjectURL(audioBlob);
+      console.log('audioUrl', url);
       setAudioUrl(url);
 
       try {
@@ -75,8 +75,6 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
     mediaRecorder.start();
     setRecorderState('Recording');
     setRecordingTime(0);
-
-    // Remove the timerRef.current setup from here
   };
 
   const stopRecording = () => {

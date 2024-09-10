@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import CircularProgress from "./circular-progress"
 import { Separator } from "./ui/separator"
-import { ChevronDown, ChevronUp } from 'lucide-react' // Make sure to install lucide-react
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 interface Subcategory {
   name: string
@@ -14,21 +14,62 @@ interface Category {
   subcategories: Subcategory[]
 }
 
+interface Suggestion {
+  category: string;
+  text: string;
+}
+
 interface EvaluationRatingProps {
   averageScore: number;
   definedRound: string;
   categories: Category[];
-  transcript: string | null; // Add transcript prop
-  audioUrl: string | null; // Keep audioUrl prop
-  recordingTimestamp: Date | null; // Add this line
-  versionNumber: number; // Add this line
-  isExpanded: boolean; // Add this line
-  onToggle: () => void; // Add this line
+  transcript: string | null;
+  audioUrl: string | null;
+  recordingTimestamp: Date | null;
+  versionNumber: number;
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
 export default function Scoring({ averageScore, definedRound, categories, transcript, audioUrl, recordingTimestamp, versionNumber, isExpanded, onToggle }: EvaluationRatingProps) {
-  // Remove the local state for isExpanded
-  // const [isExpanded, setIsExpanded] = useState(initialIsExpanded)
+  console.log('Version:', versionNumber, 'Audio URL:', audioUrl);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [audioKey, setAudioKey] = useState(0);
+  const suggestionRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
+
+  useEffect(() => {
+    if (isExpanded) {
+      fetchSuggestions();
+    }
+    setAudioKey(prevKey => prevKey + 1);
+
+    // Initialize refs for each category
+    categories.forEach(category => {
+      suggestionRefs.current[category.name] = React.createRef<HTMLDivElement>();
+    });
+  }, [isExpanded, audioUrl, categories]);
+
+  const fetchSuggestions = async () => {
+    try {
+      const response = await fetch('/api/generate-suggestions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ categories }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch suggestions');
+      }
+
+      const data = await response.json();
+      setSuggestions(data.suggestions);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      // Handle error (e.g., show an error message to the user)
+    }
+  };
 
   const overallAverageScore = categories.reduce((sum, category) => sum + category.score, 0) / categories.length;
 
@@ -47,6 +88,13 @@ export default function Scoring({ averageScore, definedRound, categories, transc
   //to satisfy the type checker
   console.debug('averageScore', averageScore);
   console.debug('definedRound', definedRound);
+
+  const scrollToSuggestion = (categoryName: string) => {
+    const ref = suggestionRefs.current[categoryName];
+    if (ref && ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-lg max-w-5xl mx-auto font-sans">
@@ -73,20 +121,16 @@ export default function Scoring({ averageScore, definedRound, categories, transc
 
       {isExpanded && (
         <>
-          <Separator className="my-8 h-px bg-gray-200" />
-          {transcript && audioUrl &&(
-            <div className="bg-white rounded-lg shadow">
-              <h2 className="text-xl font-semibold">Transcript</h2>
-              <p>{transcript}</p>
-              <audio className="mt-4 block w-full" controls src={audioUrl} />
-            </div>
-          )}
 
           <Separator className="my-8 h-px bg-gray-200" />
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Scoring</h2>
 
           {categories.map((category, index) => (
             <div key={index} className="mb-8">
-              <div className="flex justify-between items-center mb-2">
+              <div
+                className="flex justify-between items-center mb-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
+                onClick={() => scrollToSuggestion(category.name)}
+              >
                 <span className="font-bold text-xl text-gray-800">{category.name}</span>
                 <span className="font-bold text-xl text-gray-800">{(category.score / 3).toFixed(1)} / 10</span>
               </div>
@@ -107,36 +151,59 @@ export default function Scoring({ averageScore, definedRound, categories, transc
             </div>
           ))}
 
-          {transcript && (
-            <div className="mb-8">
-              <h3 className="font-bold text-xl text-gray-800 mb-2">Transcript</h3>
-              <p className="text-gray-600">{transcript}</p>
-            </div>
-          )}
-
-          {audioUrl && (
-            <div className="mb-8">
-              <h3 className="font-bold text-xl text-gray-800 mb-2">Audio Recording</h3>
-              <audio className="w-full" controls src={audioUrl} />
-            </div>
-          )}
-
-          <div className="flex items-center justify-between bg-orange-100 p-4 rounded-lg">
+          {/* Total Score */}
+          <div className="flex items-center justify-between bg-orange-100 p-4 rounded-lg mb-8">
             <span className="font-bold text-lg text-gray-800">Total Score</span>
             <div className="flex items-center">
               <span className="font-bold text-2xl text-gray-800 mr-3">{overallAverageScore.toFixed(1)} / 30</span>
-{/*
-              <div className="w-40 bg-gray-200 h-5 rounded-full overflow-hidden">
-                <div className="flex-grow bg-gray-200 h-5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-orange-400 h-full rounded-full"
-                    style={{ width: `${overallAverageScore / 30 * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-               */}
             </div>
           </div>
+          <Separator className="my-8 h-px bg-gray-200" />
+
+          {/* Transcript section */}
+          {transcript && (
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">Transcript</h2>
+              <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-600">
+                "{transcript}"
+              </blockquote>
+              {audioUrl && (
+                <audio
+                  key={audioKey}
+                  className="w-full mt-4"
+                  controls
+                  src={audioUrl}
+                  onError={(e) => console.error('Audio playback error:', e)}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Suggestions section */}
+          {suggestions.length > 0 ? (
+            <div className="mt-8">
+              <h2 className="font-bold text-3xl text-gray-800 mb-4">Suggestions for Improvement</h2>
+              {categories.map((category, index) => {
+                const categorySuggestions = suggestions.filter(s => s.category === category.name);
+                if (categorySuggestions.length === 0) return null;
+
+                return (
+                  <div key={index} className="mb-6" ref={suggestionRefs.current[category.name]}>
+                    <h4 className="font-semibold text-xl text-gray-700 mb-2">{category.name}</h4>
+                    <ul className="list-disc pl-5">
+                      {categorySuggestions.map((suggestion, sIndex) => (
+                        <li key={sIndex} className="text-gray-600 mb-1">{suggestion.text}</li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mt-8">
+              <p className="text-gray-600 text-lg">Great work. No suggestions.</p>
+            </div>
+          )}
         </>
       )}
     </div>

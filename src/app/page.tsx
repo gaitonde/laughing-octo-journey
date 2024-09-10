@@ -1,7 +1,6 @@
 'use client';
 
 import ProgressTracker from "@/components/progress-tracker";
-import AudioRecorder from "@/components/audio-recorder";
 import { useState } from 'react';
 
 export default function Home() {

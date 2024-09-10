@@ -58,9 +58,11 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
 
       try {
         const transcription = await getTranscription(audioBlob);
+        setTranscript(transcription); // Update the transcript state
         onTranscriptionComplete(transcription);
       } catch (error) {
         console.error('Transcription error:', error);
+        setTranscript('Transcription failed'); // Update the transcript state even on error
         onTranscriptionComplete('Transcription failed');
       }
     };

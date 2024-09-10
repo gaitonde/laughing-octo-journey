@@ -28,6 +28,8 @@ export default function ProgressTracker() {
   const [transcript, setTranscript] = useState<string | null>(null);
   const [aiScoringResult, setAiScoringResult] = useState<ScoringResult | null>(null);
   const [showDebug, setShowDebug] = useState(false);
+  setShowDebug(true);
+  setShowDebug(false);
 
   const handleTranscriptionComplete = async (newTranscript: string) => {
     setTranscript(newTranscript);

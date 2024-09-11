@@ -6,7 +6,7 @@ interface AudioRecorderProps {
 
 type RecorderState = 'Ready' | 'Recording' | 'Transcribing';
 
-const FIXED_TIME_LIMIT = 10;
+const FIXED_TIME_LIMIT = 30;
 
 export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorderProps) {
   const [recorderState, setRecorderState] = useState<RecorderState>('Ready');
@@ -57,13 +57,13 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
     }
   }, [recorderState]);
 
-  const handleRecordClick = () => {
+  const handleRecordInteraction = useCallback(() => {
     if (recorderState === 'Ready') {
       startRecording();
     } else if (recorderState === 'Recording') {
       stopRecording();
     }
-  };
+  }, [recorderState, startRecording, stopRecording]);
 
   const getTranscription = async (audioBlob: Blob): Promise<string> => {
     const audioBase64 = await blobToBase64(audioBlob);
@@ -118,7 +118,7 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
         URL.revokeObjectURL(audioUrl);
       }
     };
-  }, [recorderState, audioUrl, stopRecording]);
+  }, [recorderState, FIXED_TIME_LIMIT, audioUrl, stopRecording]);
 
   return (
     <div className="space-y-4">
@@ -127,7 +127,8 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
           className={`px-4 py-2 rounded ${
             recorderState === 'Recording' ? 'bg-red-600' : 'bg-orange-600'
           } text-white`}
-          onClick={handleRecordClick}
+          onClick={handleRecordInteraction}
+          onTouchStart={handleRecordInteraction}
           disabled={recorderState === 'Transcribing'}
         >
           {recorderState === 'Ready' ? 'Record' : recorderState === 'Recording' ? 'Stop' : 'Transcribing...'}

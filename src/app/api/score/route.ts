@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       contentAndStructure,
       deliveryAndVocalControl,
       languageUseAndStyle,
-      finalScore: parseFloat(finalScore.toFixed(2))
+      finalScore: parseFloat((finalScore ?? 0).toFixed(2))
     };
 
     return NextResponse.json(result);

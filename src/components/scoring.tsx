@@ -137,7 +137,7 @@ export default function Scoring({ averageScore, definedRound, categories, transc
                 <div key={subIndex} className="flex items-center mb-2">
                   <span className="w-1/3 text-sm text-gray-600">{subcategory.name}</span>
                   <span className="w-8 text-right mr-3 text-sm font-semibold text-gray-800">
-                    {subcategory.score.toFixed(1)}
+                    {(subcategory.score ?? 0).toFixed(1)}
                   </span>
                   <div className="flex-grow bg-gray-200 h-5 rounded-full overflow-hidden">
                     <div
@@ -154,7 +154,7 @@ export default function Scoring({ averageScore, definedRound, categories, transc
           <div className="flex items-center justify-between bg-orange-100 p-4 rounded-lg mb-8">
             <span className="font-bold text-lg text-gray-800">Total Score</span>
             <div className="flex items-center">
-              <span className="font-bold text-2xl text-gray-800 mr-3">{overallAverageScore.toFixed(1)} / 30</span>
+              <span className="font-bold text-2xl text-gray-800 mr-3">{(overallAverageScore ?? 0).toFixed(1)} / 30</span>
             </div>
           </div>
           <Separator className="my-8 h-px bg-gray-200" />

@@ -1,14 +1,17 @@
 import React, { useCallback } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { set } from 'idb-keyval';
+
 interface AudioRecorderProps {
   onTranscriptionComplete: (transcript: string, audioUrl: string) => void;
+  version: number;
 }
 
 type RecorderState = 'Ready' | 'Recording' | 'Transcribing';
 
 const FIXED_TIME_LIMIT = 30;
 
-export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorderProps) {
+export default function AudioRecorder({ onTranscriptionComplete, version }: AudioRecorderProps) {
   const [recorderState, setRecorderState] = useState<RecorderState>('Ready');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -27,8 +30,15 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
       setRecorderState('Transcribing');
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm; codecs=opus' });
       const url = URL.createObjectURL(audioBlob);
-      console.log('audioUrl', url);
-      setAudioUrl(url);
+
+      // Save the audio blob to IndexedDB with version in the key
+      try {
+        const key = `audio_v${version}`;
+        await set(key, audioBlob);
+        console.log('Audio blob saved to IndexedDB with key:', key);
+      } catch (error) {
+        console.error('Error saving audio blob to IndexedDB:', error);
+      }
 
       try {
         const transcription = await getTranscription(audioBlob);
@@ -134,6 +144,7 @@ export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorder
           {recorderState === 'Ready' ? 'Record' : recorderState === 'Recording' ? 'Stop' : 'Transcribing...'}
         </button>
       </div>
+
       {recorderState === 'Recording' && (
         <div className="text-sm text-gray-600">
           Recording: {recordingTime}s / {FIXED_TIME_LIMIT}s

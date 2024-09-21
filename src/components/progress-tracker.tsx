@@ -1,6 +1,7 @@
 import AudioRecorder from "@/components/audio-recorder";
 import { useState, useEffect } from 'react';
 import Scoring from "./scoring";
+import { get } from 'idb-keyval';
 
 interface ScoringResult {
   contentAndStructure: {
@@ -28,13 +29,23 @@ export default function ProgressTracker() {
   const [versions, setVersions] = useState<Array<{
     transcript: string | null;
     aiScoringResult: ScoringResult | null;
-    audioUrl: string | null;
+    audioUrl: string;
     recordingTimestamp: Date;
   }>>([]);
   const [showDebug, setShowDebug] = useState(false);
   const [expandedVersionIndex, setExpandedVersionIndex] = useState<number | null>(null);
 
   const handleTranscriptionComplete = async (newTranscript: string, newAudioUrl: string) => {
+    console.log('YYY newTranscript', newTranscript);
+    console.log('YYY ignore newAudioUrl', newAudioUrl);
+    console.log('YYY version #???', versions.length);
+    const versionNumber = getNextVersionNumber();
+    const key = `audio_v${versionNumber}`;
+    console.log('YYY in here with key', key);
+    const audioBlob = await get(key);
+    newAudioUrl = URL.createObjectURL(audioBlob);
+    console.log('YYY USE THIS newAudioUrl INSTEAD', newAudioUrl);
+
     const newVersion = {
       transcript: newTranscript,
       aiScoringResult: null,
@@ -88,6 +99,9 @@ export default function ProgressTracker() {
     }
   }, [versions.length]);
 
+  // Add this function to get the next version number
+  const getNextVersionNumber = () => versions.length + 1;
+
   return (
     <div className="min-h-screen bg-blue-50 p-6">
       <div className="max-w-2xl mx-auto space-y-4">
@@ -96,7 +110,10 @@ export default function ProgressTracker() {
           Pitch Perfect. Confidence Amplified. Speak Up. Stand Out.
         </p>
         <div className="p-4 bg-white rounded-lg shadow">
-          <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
+          <AudioRecorder
+            onTranscriptionComplete={handleTranscriptionComplete}
+            version={getNextVersionNumber()}
+          />
         </div>
 
         {versions.map((version, index) => (

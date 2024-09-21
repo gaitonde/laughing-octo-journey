@@ -24,7 +24,7 @@ interface EvaluationRatingProps {
   definedRound: string;
   categories: Category[];
   transcript: string | null;
-  audioUrl: string | null;
+  audioUrl: string;
   recordingTimestamp: Date | null;
   versionNumber: number;
   isExpanded: boolean;
@@ -32,9 +32,9 @@ interface EvaluationRatingProps {
 }
 
 export default function Scoring({ averageScore, definedRound, categories, transcript, audioUrl, recordingTimestamp, versionNumber, isExpanded, onToggle }: EvaluationRatingProps) {
-  console.log('Version:', versionNumber, 'Audio URL:', audioUrl);
+  console.log('YYY Version:', versionNumber, 'Audio URL:', audioUrl);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [audioKey, setAudioKey] = useState(0);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const suggestionRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
 
   useEffect(() => {
@@ -63,7 +63,6 @@ export default function Scoring({ averageScore, definedRound, categories, transc
     if (isExpanded) {
       fetchSuggestions();
     }
-    setAudioKey(prevKey => prevKey + 1);
 
     // Initialize refs for each category
     categories.forEach(category => {
@@ -168,13 +167,21 @@ export default function Scoring({ averageScore, definedRound, categories, transc
                 &quot;{transcript}&quot;
               </blockquote>
               {audioUrl && (
-                <audio
-                  key={audioKey}
-                  className="w-full mt-4"
-                  controls
-                  src={audioUrl}
-                  onError={(e) => console.error('Audio playback error:', e)}
-                />
+                <div>
+                  <audio
+                    key={audioUrl}
+                    className="w-full mt-4"
+                    controls
+                    src={audioUrl}
+                    onError={(e) => {
+                      const target = e.target as HTMLAudioElement;
+                      const errorMessage = `Audio playback error: ${target.error?.message || 'Unknown error'}`;
+                      console.error(errorMessage);
+                      setAudioError(errorMessage);
+                    }}
+                  />
+                  {audioError && <p className="text-red-500 mt-2">{audioError}</p>}
+                </div>
               )}
             </div>
           )}

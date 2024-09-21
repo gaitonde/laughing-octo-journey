@@ -35,8 +35,8 @@ export async function POST(req: NextRequest) {
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      max_tokens: 500,
+      temperature: 0,
+      max_tokens: 1000,
     });
 
     const suggestionsText = response.choices[0].message.content;

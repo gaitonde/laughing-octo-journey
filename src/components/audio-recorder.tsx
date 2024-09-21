@@ -13,7 +13,6 @@ const FIXED_TIME_LIMIT = 30;
 
 export default function AudioRecorder({ onTranscriptionComplete, version }: AudioRecorderProps) {
   const [recorderState, setRecorderState] = useState<RecorderState>('Ready');
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -124,11 +123,8 @@ export default function AudioRecorder({ onTranscriptionComplete, version }: Audi
     return () => {
       clearTimeout(stopTimeout);
       clearInterval(intervalId);
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
-      }
     };
-  }, [recorderState, FIXED_TIME_LIMIT, audioUrl, stopRecording]);
+  }, [recorderState, FIXED_TIME_LIMIT, stopRecording]);
 
   return (
     <div className="space-y-4">
